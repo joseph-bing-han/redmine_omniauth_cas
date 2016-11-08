@@ -34,6 +34,15 @@ module Redmine::OmniAuthCAS
 
         #user = User.find_by_provider_and_uid(auth["provider"], auth["uid"])
         user = User.find_by_login(auth["uid"]) || User.find_by_mail(auth["uid"])
+        
+        #if can not find the user in db, we create a new one
+        if user.blank?
+          u = User.new(:firstname => auth["uid"], :lastname => "SSO")
+          u.login = auth["uid"]
+          u.mail = auth["uid"]+"@sso.com"
+          u.save
+          user = User.find_by_login(auth["uid"])
+        end
 
         # taken from original AccountController
         # maybe it should be splitted in core
